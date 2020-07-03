@@ -1,0 +1,32 @@
+{
+  "name": "covercms/filesystem",
+  "type": "library",
+  "description": "CoverCMS filesystem library",
+  "keywords": [
+    "covercms"
+  ],
+  "license": "Apache-2.0",
+  "authors": [
+    {
+      "name": "Mr moon",
+      "email": "createsmart@163.com"
+    }
+  ],
+  "minimum-stability": "stable",
+  "require": {
+    "php": "^7.1",
+    "qiniu/php-sdk": "^7.2",
+    "aliyuncs/oss-sdk-php": "^2.3",
+    "qcloud/cos-sdk-v5": "^2.0",
+    "nicolab/php-ftp-client": "^1.5",
+    "symfony/filesystem": "^5.0.7",
+    "symfony/finder": "^5.0.7",
+    "ext-iconv": "*",
+    "ext-ftp": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "CoverCMS\\Filesystem\\": "src/"
+    }
+  }
+}
