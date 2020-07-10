@@ -232,23 +232,35 @@ class Client implements FilesystemInterface
     public function initiateMultipartUpload($path, $bucket = null, $options = null)
     {
         if (!is_array($options)) $options = [];
-        return $this->client->createMultipartUpload(array_merge([
-            'Bucket' => $bucket, //格式：BucketName-APPID
-            'Key' => $path,
-            /*
-            'CacheControl' => 'string',
-            'ContentDisposition' => 'string',
-            'ContentEncoding' => 'string',
-            'ContentLanguage' => 'string',
-            'ContentLength' => integer,
-            'ContentType' => 'string',
-            'Expires' => 'string',
-            'Metadata' => array(
-                'string' => 'string',
-            ),
-            'StorageClass' => 'string'
-            */
-        ], $options));
+
+        try {
+            $result = $this->client->createMultipartUpload(array_merge([
+                'Bucket' => $bucket, //格式：BucketName-APPID
+                'Key' => $path,
+                /*
+                'CacheControl' => 'string',
+                'ContentDisposition' => 'string',
+                'ContentEncoding' => 'string',
+                'ContentLanguage' => 'string',
+                'ContentLength' => integer,
+                'ContentType' => 'string',
+                'Expires' => 'string',
+                'Metadata' => array(
+                    'string' => 'string',
+                ),
+                'StorageClass' => 'string'
+                */
+            ], $options))->toArray();
+        } catch (\Exception $exception) {
+        }
+        $result = is_array($result) ? $result : [];
+        $uploadId = $result['UploadId'] ?? '';
+        if (empty($uploadId)) {
+            throw new \Exception('Failed to get ID');
+        }
+//        throw new \InvalidArgumentException($uploadId);
+
+        return $uploadId;
     }
 
     /**
@@ -265,17 +277,26 @@ class Client implements FilesystemInterface
     public function uploadPart($path, $content, $partNum, $uploadId = null, $bucket = null, array $options = null)
     {
         if (!is_array($options)) $options = [];
-        return $this->client->uploadPart(array_merge([
-            'Bucket' => $bucket, //格式：BucketName-APPID
-            'Key' => $path,
-            'Body' => $content,
-            'UploadId' => $uploadId, //UploadId 为对象分块上传的 ID，在分块上传初始化的返回参数里获得
-            'PartNumber' => $partNum, //PartNumber 为分块的序列号，COS 会根据携带序列号合并分块
-            /*
-            'ContentMD5' => 'string',
-            'ContentLength' => integer,
-            */
-        ], $options));
+        try {
+            $result = $this->client->uploadPart(array_merge([
+                'Bucket' => $bucket, //格式：BucketName-APPID
+                'Key' => $path,
+                'Body' => $content,
+                'UploadId' => $uploadId, //UploadId 为对象分块上传的 ID，在分块上传初始化的返回参数里获得
+                'PartNumber' => $partNum, //PartNumber 为分块的序列号，COS 会根据携带序列号合并分块
+                /*
+                'ContentMD5' => 'string',
+                'ContentLength' => integer,
+                */
+            ], $options))->toArray();
+        } catch (\Exception $exception) {
+        }
+
+        if (!isset($result) || !is_array($result) || !isset($result['ETag'])) {
+            throw new \Exception('Failed to upload data block');
+        }
+
+        return $result;
     }
 
     /**
@@ -285,16 +306,26 @@ class Client implements FilesystemInterface
      * @param array $uploadParts
      * @param string $uploadId
      * @param string $bucket
+     * @param int $size
+     * @param string $mimeType
      * @return mixed
      */
-    public function mergeMultipartUpload($path, array $uploadParts = [], $uploadId = null, $bucket = null)
+    public function mergeMultipartUpload($path, array $uploadParts = [], $uploadId = null, $bucket = null, $size = 0, $mimeType = '')
     {
-        return $this->client->completeMultipartUpload([
-            'Bucket' => $bucket, //格式：BucketName-APPID
-            'Key' => $path,
-            'UploadId' => $uploadId,
-            'Parts' => $uploadParts,
-        ]);
+        try {
+            $result = $this->client->completeMultipartUpload([
+                'Bucket' => $bucket, //格式：BucketName-APPID
+                'Key' => $path,
+                'UploadId' => $uploadId,
+                'Parts' => $uploadParts,
+            ])->toArray();
+        } catch (\Exception $exception) {
+        }
+        if (!isset($result) || !is_array($result)) {
+            throw new \Exception('Failed to upload merge data');
+        }
+
+        return $result ?? [];
     }
 
     /**
@@ -410,5 +441,10 @@ class Client implements FilesystemInterface
             'Prefix' => $prefix,
             'MaxKeys' => $size,
         ]);
+    }
+
+    public static function getName()
+    {
+        return 'qcloud';
     }
 }

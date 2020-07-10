@@ -199,9 +199,11 @@ class Client implements FilesystemInterface
      * @param array $uploadParts
      * @param null $uploadId
      * @param null $bucket
+     * @param int $size
+     * @param string $mimeType
      * @throws Exception
      */
-    public function mergeMultipartUpload($path, array $uploadParts = [], $uploadId = null, $bucket = null)
+    public function mergeMultipartUpload($path, array $uploadParts = [], $uploadId = null, $bucket = null, $size = 0, $mimeType = '')
     {
         throw new Exception('Unsupported');
     }
@@ -298,5 +300,10 @@ class Client implements FilesystemInterface
     public function listFile($prefix = '', $start = '', $size = 100, $bucket = null)
     {
         return $this->client->scanDir($prefix);
+    }
+    
+    public static function getName()
+    {
+        return 'ftp';
     }
 }

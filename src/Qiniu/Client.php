@@ -19,8 +19,6 @@ use function Qiniu\crc32_data;
  */
 class Client implements FilesystemInterface
 {
-    private $accessKey;
-
     private $auth;
 
     private $uploadManger;
@@ -275,6 +273,17 @@ class Client implements FilesystemInterface
         return $ret;
     }
 
+    private function text2bin($txt_str)
+    {
+        $len = strlen($txt_str);
+        $bin = '';
+        for($i = 0; $i < $len; $i )
+        {
+            $bin .= strlen(decbin(ord($txt_str[$i])))<8?str_pad(decbin(ord($txt_str[$i])),8,0,STR_PAD_LEFT):decbin(ord($txt_str[$i]));
+        }
+        return $bin;
+    }
+
     /**
      * 组合分片文件
      *
@@ -282,15 +291,17 @@ class Client implements FilesystemInterface
      * @param array $uploadParts
      * @param null $uploadId
      * @param null $bucket
+     * @param int $size
+     * @param int $mimeType
      * @return array
      */
-    public function mergeMultipartUpload($path, array $uploadParts = [], $uploadId = null, $bucket = null)
+    public function mergeMultipartUpload($path, array $uploadParts = [], $uploadId = null, $bucket = null, $size = 0, $mimeType = '')
     {
-        $url = $this->fileUrl($bucket, $path);
+        $url = $this->fileUrl($bucket, $path, $size, $mimeType);
         $body = implode(',', $uploadParts);
-        $response = $this->post($url, $body);
+        $response = $this->post($url, $body, $bucket);
         if ($response->needRetry()) {
-            $response = $this->post($url, $body);
+            $response = $this->post($url, $body, $bucket);
         }
         if (!$response->ok()) {
             return array(null, new Error($this->currentUrl, $response));
@@ -399,22 +410,23 @@ class Client implements FilesystemInterface
      */
     public function makeBlock($bucket, $block, $blockSize)
     {
-        $upHost = $this->config->getUpHost($this->accessKey, $bucket);
+        $upHost = $this->config->getUpHost($this->auth->getAccessKey(), $bucket);
 
         $url = $upHost . '/mkblk/' . $blockSize;
-        return $this->post($url, $block);
+        return $this->post($url, $block, $bucket);
     }
 
-    private function fileUrl($bucket, $path)
+    private function fileUrl($bucket, $path, $size, $mimeType, array $params = [])
     {
-        $upHost = $this->config->getUpHost($this->accessKey, $bucket);
+        $upHost = $this->config->getUpHost($this->auth->getAccessKey(), $bucket);
 
-        $url = $upHost . '/mkfile/' . $this->size;
-        $url .= '/mimeType/' . base64_urlSafeEncode($this->mime);
+        $url = $upHost . '/mkfile/' . intval($size);
+        $url .= '/key/' . base64_urlSafeEncode($path);
 
         $url .= '/fname/' . base64_urlSafeEncode($path);
-        if (!empty($this->params)) {
-            foreach ($this->params as $key => $value) {
+        $url .= '/mimeType/' . base64_urlSafeEncode($mimeType);
+        if (!empty($params)) {
+            foreach ($params as $key => $value) {
                 $val = base64_urlSafeEncode($value);
                 $url .= "/$key/$val";
             }
@@ -423,10 +435,17 @@ class Client implements FilesystemInterface
         return $url;
     }
 
-    private function post($url, $data)
+    private function post($url, $data, $bucket)
     {
+        $token = $this->auth->uploadToken($bucket);
+
         $this->currentUrl = $url;
-        $headers = array('Authorization' => 'UpToken ' . $this->upToken);
+        $headers = array('Authorization' => 'UpToken ' . $token);
         return \Qiniu\Http\Client::post($url, $data, $headers);
+    }
+
+    public static function getName()
+    {
+        return 'qiniu';
     }
 }

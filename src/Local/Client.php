@@ -150,9 +150,11 @@ class Client implements FilesystemInterface
      * @param array $uploadParts
      * @param null $uploadId
      * @param null $bucket
+     * @param int $size
+     * @param string $mimeType
      * @return bool
      */
-    public function mergeMultipartUpload($path, array $uploadParts = [], $uploadId = null, $bucket = null)
+    public function mergeMultipartUpload($path, array $uploadParts = [], $uploadId = null, $bucket = null, $size = 0, $mimeType = '')
     {
         $this->filesystem->mkdir(dirname($path));
         if (!$out = @fopen($path, 'wb')) {
@@ -268,5 +270,10 @@ class Client implements FilesystemInterface
     {
         $finder = new Finder();
         return $finder->depth(0)->files()->in($prefix);
+    }
+
+    public static function getName()
+    {
+        return 'local';
     }
 }

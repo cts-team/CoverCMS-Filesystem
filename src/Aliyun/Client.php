@@ -242,10 +242,12 @@ class Client implements FilesystemInterface
      * @param array $uploadParts
      * @param null $uploadId
      * @param null $bucket
+     * @param int $size
+     * @param string $mimeType
      * @return null
      * @throws OssException
      */
-    public function mergeMultipartUpload($path, array $uploadParts = [], $uploadId = null, $bucket = null)
+    public function mergeMultipartUpload($path, array $uploadParts = [], $uploadId = null, $bucket = null, $size = 0, $mimeType = '')
     {
         return $this->ossClient->completeMultipartUpload($bucket, $path, $uploadId, $uploadParts);
     }
@@ -427,5 +429,10 @@ class Client implements FilesystemInterface
         $listObjectInfo = $this->ossClient->listObjects($bucket, $options);
 
         return $listObjectInfo;
+    }
+
+    public static function getName()
+    {
+        return 'aliyun';
     }
 }

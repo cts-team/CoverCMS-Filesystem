@@ -24,7 +24,7 @@ interface FilesystemInterface
 
     public function uploadPart($path, $content, $partNum, $uploadId = null, $bucket = null, array $options = null);
 
-    public function mergeMultipartUpload($path, array $uploadParts = [], $uploadId = null, $bucket = null);
+    public function mergeMultipartUpload($path, array $uploadParts = [], $uploadId = null, $bucket = null, $size = 0, $mimeType = '');
 
     public function multipartUploadFromFile($path, $file, $bucket = null, array $options = null);
 
@@ -37,4 +37,6 @@ interface FilesystemInterface
     public function getFileMeta($path, $bucket = null, $options = null);
 
     public function listFile($prefix = '', $start = '', $size = 100, $bucket = null);
+
+    public static function getName();
 }
