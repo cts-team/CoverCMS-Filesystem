@@ -166,7 +166,8 @@ class Client implements FilesystemInterface
             ->name('/\.part$/')
             ->files()
             ->in($tmpPath);
-        for ($i = 1; $i <= $finder->count(); $i++) {
+        $total = $finder->count();
+        for ($i = 1; $i <= $total; $i++) {
             $partPath = $tmpPath . DIRECTORY_SEPARATOR . $i . '.part';
             if (!$in = @fopen($partPath, 'rb')) {
                 break;
