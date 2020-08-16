@@ -20,8 +20,7 @@
     "qcloud/cos-sdk-v5": "^2.0",
     "symfony/filesystem": "^5.0.7",
     "symfony/finder": "^5.0.7",
-    "ext-iconv": "*",
-    "ext-ftp": "*"
+    "ext-iconv": "*"
   },
   "autoload": {
     "psr-4": {
